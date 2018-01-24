@@ -23,18 +23,11 @@ import com.databasepreservation.model.parameters.Parameters;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ListTablesModuleFactory implements DatabaseModuleFactory {
-  private static final Parameter file = new Parameter().shortName("f").longName("file")
+  public static final String PARAMETER_FILE = "file";
+
+  private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("Path to output file that can be read by SIARD2 export module").hasArgument(true)
     .setOptionalArgument(false).required(true);
-
-  private Reporter reporter;
-
-  private ListTablesModuleFactory() {
-  }
-
-  public ListTablesModuleFactory(Reporter reporter) {
-    this.reporter = reporter;
-  }
 
   @Override
   public boolean producesImportModules() {
@@ -69,17 +62,18 @@ public class ListTablesModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws UnsupportedModuleException,
     LicenseNotAcceptedException {
     throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForImportModule();
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter) throws UnsupportedModuleException,
     LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
-    reporter.exportModuleParameters(this.getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    reporter
+      .exportModuleParameters(this.getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
     return new ListTables(pFile);
   }
 }

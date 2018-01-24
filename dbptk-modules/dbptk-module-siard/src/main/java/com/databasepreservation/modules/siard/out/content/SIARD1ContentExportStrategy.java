@@ -21,7 +21,6 @@ import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -375,8 +374,6 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 
         xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
       } catch (ModuleException e) {
-        LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
-      } catch (UnknownTypeException e) {
         LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
       }
       columnIndex++;

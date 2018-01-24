@@ -120,12 +120,7 @@ public class DBMLImportModule implements DatabaseImportModule {
     this.dbmlFilePath = dbmlFilePath;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.databasepreservation.Import.DatabaseImportModule#getDatabase ()
-   */
-  public void getDatabase(DatabaseExportModule databaseExportModule) throws UnknownTypeException, ModuleException {
+  public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule databaseExportModule) throws ModuleException {
     this.binLookup = new DBMLBinaryLookup() {
       @Override
       public InputStream getBinary(final String id) throws ModuleException {
@@ -154,19 +149,18 @@ public class DBMLImportModule implements DatabaseImportModule {
 
     DBMLSAXHandler dbmlSAXHandler = new DBMLSAXHandler(binLookup, databaseExportModule);
     try {
-      LOGGER.debug("Init Database");
       databaseExportModule.initDatabase();
       saxParser.parse(dbml, dbmlSAXHandler);
       if (dbmlSAXHandler.getErrors().size() > 0) {
         throw new ModuleException(dbmlSAXHandler.getErrors());
       }
-      LOGGER.debug("Finish Database");
       databaseExportModule.finishDatabase();
     } catch (SAXException e) {
       throw new ModuleException("Error parsing DBML", e);
     } catch (IOException e) {
       throw new ModuleException("Error reading DBML", e);
     }
+    return null;
   }
 
   /**
@@ -477,8 +471,6 @@ public class DBMLImportModule implements DatabaseImportModule {
         } catch (ModuleException e) {
           errors.put("Error handling structure", e);
 
-        } catch (UnknownTypeException e) {
-          errors.put("Error handling structure", e);
         }
       } else if (qname.equals("table")) {
         currentTableStructure = null;
@@ -515,7 +507,7 @@ public class DBMLImportModule implements DatabaseImportModule {
         }
       } else if (qname.equals("tableData")) {
         try {
-          structure.lookupTableStructure(currentTableDataId).setRows(rowsCount);
+          structure.getTableById(currentTableDataId).setRows(rowsCount);
           databaseExportModule.handleDataCloseTable(currentTableDataId);
         } catch (ModuleException e) {
           errors.put("Error closing table", null);

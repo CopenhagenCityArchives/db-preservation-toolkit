@@ -19,30 +19,38 @@ import com.databasepreservation.modules.oracle.out.Oracle12cJDBCExportModule;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Oracle12cModuleFactory implements DatabaseModuleFactory {
+  public static final String PARAMETER_SERVER_NAME = "server-name";
+  public static final String PARAMETER_PORT_NUMBER = "port-number";
+  public static final String PARAMETER_DATABASE = "database";
+  public static final String PARAMETER_USERNAME = "username";
+  public static final String PARAMETER_PASSWORD = "password";
+  public static final String PARAMETER_SOURCE_SCHEMA = "source-schema";
+  public static final String PARAMETER_ACCEPT_LICENSE = "accept-license";
+
   private static final String licenseURL = "http://www.oracle.com/technetwork/licenses/distribution-license-152002.html";
 
-  private static final Parameter serverName = new Parameter().shortName("s").longName("server-name")
+  private static final Parameter serverName = new Parameter().shortName("s").longName(PARAMETER_SERVER_NAME)
     .description("the name (or IP address) of the Oracle server").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
-  private static final Parameter portNumber = new Parameter().shortName("pn").longName("port-number")
+  private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
     .description("the server port number").hasArgument(true).setOptionalArgument(false).required(true);
 
-  private static final Parameter database = new Parameter().shortName("db").longName("database")
+  private static final Parameter database = new Parameter().shortName("db").longName(PARAMETER_DATABASE)
     .description("the name of the database to use in the connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
-  private static final Parameter username = new Parameter().shortName("u").longName("username")
+  private static final Parameter username = new Parameter().shortName("u").longName(PARAMETER_USERNAME)
     .description("the name of the user to use in connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
-  private static final Parameter password = new Parameter().shortName("p").longName("password")
+  private static final Parameter password = new Parameter().shortName("p").longName(PARAMETER_PASSWORD)
     .description("the password of the user to use in connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
   private static final Parameter sourceSchema = new Parameter()
     .shortName("sc")
-    .longName("source-schema")
+    .longName(PARAMETER_SOURCE_SCHEMA)
     .hasArgument(true)
     .setOptionalArgument(false)
     .required(false)
@@ -51,18 +59,9 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
         + " the Oracle database and it must be the default tablespace for the specified user. If omitted, the name of"
         + " the first schema will be used");
 
-  private static final Parameter acceptLicense = new Parameter().shortName("al").longName("accept-license")
+  private static final Parameter acceptLicense = new Parameter().shortName("al").longName(PARAMETER_ACCEPT_LICENSE)
     .description("declare that you accept OTN License Agreement, which is necessary to use this module")
     .hasArgument(false).valueIfSet("true").valueIfNotSet("false").required(false);
-
-  private Reporter reporter;
-
-  private Oracle12cModuleFactory() {
-  }
-
-  public Oracle12cModuleFactory(Reporter reporter) {
-    this.reporter = reporter;
-  }
 
   @Override
   public boolean producesImportModules() {
@@ -104,7 +103,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws UnsupportedModuleException,
     LicenseNotAcceptedException {
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
@@ -119,13 +118,14 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
 
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
-    reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-      pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+    reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE, pDatabase,
+      PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+      pPortNumber.toString());
     return new Oracle12cJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword);
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter) throws UnsupportedModuleException,
     LicenseNotAcceptedException {
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
@@ -141,9 +141,9 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
 
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
-    reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-      pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString(), "source schema",
-      pSourceSchema);
+    reporter.exportModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE, pDatabase,
+      PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+      pPortNumber.toString(), PARAMETER_SOURCE_SCHEMA, pSourceSchema);
     return new Oracle12cJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pSourceSchema);
   }
 

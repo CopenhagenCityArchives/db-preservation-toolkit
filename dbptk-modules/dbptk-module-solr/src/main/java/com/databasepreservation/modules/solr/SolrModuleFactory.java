@@ -5,9 +5,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.model.Reporter;
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
@@ -21,36 +21,34 @@ import com.databasepreservation.utils.ConfigUtils;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SolrModuleFactory implements DatabaseModuleFactory {
-  private static final Parameter hostname = new Parameter().longName("hostname").shortName("h")
+  public static final String PARAMETER_HOSTNAME = "hostname";
+  public static final String PARAMETER_PORT = "port";
+  public static final String PARAMETER_ENDPOINT = "endpoint";
+  public static final String PARAMETER_ZOOKEEPER_HOST = "zookeeper-hostname";
+  public static final String PARAMETER_ZOOKEEPER_PORT = "zookeeper-port";
+  public static final String PARAMETER_DATABASE_UUID = "database-id";
+
+  private static final Parameter hostname = new Parameter().longName(PARAMETER_HOSTNAME).shortName("h")
     .description("Solr Cloud server hostname or address").required(false).hasArgument(true).setOptionalArgument(false)
     .valueIfNotSet("127.0.0.1");
 
-  private static final Parameter port = new Parameter().longName("port").shortName("p")
+  private static final Parameter port = new Parameter().longName(PARAMETER_PORT).shortName("p")
     .description("Solr Cloud server port").required(false).hasArgument(true).setOptionalArgument(false)
     .valueIfNotSet("8983");
 
-  private static final Parameter endpoint = new Parameter().longName("endpoint").shortName("e")
+  private static final Parameter endpoint = new Parameter().longName(PARAMETER_ENDPOINT).shortName("e")
     .description("Solr endpoint").required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet("solr");
 
-  private static final Parameter zookeeperHost = new Parameter().longName("zookeeper-hostname").shortName("zh")
+  private static final Parameter zookeeperHost = new Parameter().longName(PARAMETER_ZOOKEEPER_HOST).shortName("zh")
     .description("Zookeeper server hostname or address").required(false).hasArgument(true).setOptionalArgument(false)
     .valueIfNotSet("127.0.0.1");
 
-  private static final Parameter zookeeperPort = new Parameter().longName("zookeeper-port").shortName("zp")
+  private static final Parameter zookeeperPort = new Parameter().longName(PARAMETER_ZOOKEEPER_PORT).shortName("zp")
     .description("Zookeeper server port").required(false).hasArgument(true).setOptionalArgument(false)
     .valueIfNotSet("9983");
 
-  private static final Parameter databaseUUID = new Parameter().longName("database-id").shortName("dbid")
+  private static final Parameter databaseUUID = new Parameter().longName(PARAMETER_DATABASE_UUID).shortName("dbid")
     .description("Database UUID to use in Solr").required(false).hasArgument(true).setOptionalArgument(false);
-
-  private Reporter reporter;
-
-  private SolrModuleFactory() {
-  }
-
-  public SolrModuleFactory(Reporter reporter) {
-    this.reporter = reporter;
-  }
 
   @Override
   public boolean producesImportModules() {
@@ -89,13 +87,13 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws UnsupportedModuleException,
     LicenseNotAcceptedException {
     throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForImportModule();
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter) throws UnsupportedModuleException,
     LicenseNotAcceptedException {
     String pHostname = parameters.get(hostname);
     if (StringUtils.isBlank(pHostname)) {
@@ -128,8 +126,9 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
       pZookeeperPortNumber = Integer.parseInt(zookeeperPort.valueIfNotSet());
     }
 
-    reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "port", pPortNumber.toString(), "endpoint",
-      pEndpoint, "zookeeper-hostname", pZookeperHostname, "zookeeper-port", pZookeeperPortNumber.toString());
+    reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_PORT,
+      pPortNumber.toString(), PARAMETER_ENDPOINT, pEndpoint, PARAMETER_ZOOKEEPER_HOST, pZookeperHostname,
+      PARAMETER_ZOOKEEPER_PORT, pZookeeperPortNumber.toString());
 
     Path moduleDirectory = ConfigUtils.getModuleDirectory(this);
 

@@ -97,7 +97,7 @@ public class SolrExportModule implements DatabaseExportModule {
    * @throws UnknownTypeException
    */
   @Override
-  public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
+  public void handleStructure(DatabaseStructure structure) throws ModuleException {
     this.structure = structure;
     this.viewerDatabase = ToolkitStructure2ViewerStructure.getDatabase(structure, preSetDatabaseUUID);
     solrManager.addDatabase(viewerDatabase);
@@ -139,11 +139,10 @@ public class SolrExportModule implements DatabaseExportModule {
    *
    * @param row
    *          the table row
-   * @throws InvalidDataException
    * @throws ModuleException
    */
   @Override
-  public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
+  public void handleDataRow(Row row) throws ModuleException {
     solrManager.addRow(currentTable,
       ToolkitStructure2ViewerStructure.getRow(configuration, viewerDatabase.getUUID(), currentTable, row, rowIndex++));
   }

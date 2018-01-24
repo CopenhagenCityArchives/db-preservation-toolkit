@@ -554,9 +554,9 @@ public class SiardTest {
         break;
       case SIARD_DK:
         Map<String, String> exportModuleArgs = new HashMap<String, String>();
-        exportModuleArgs.put(SIARDDKModuleFactory.folder.longName(), tmpFile.toString());
-        exportModuleArgs.put("lobs-per-folder", "10000");
-        exportModuleArgs.put("lobs-folder-size", "1000");
+        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_FOLDER, tmpFile.toString());
+        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_PER_FOLDER, "10000");
+        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_FOLDER_SIZE, "1000");
         exporter = new SIARDDKExportModule(exportModuleArgs, null).getDatabaseExportModule();
         break;
     }
@@ -620,7 +620,7 @@ public class SiardTest {
     importer.setOnceReporter(mockReporter);
 
     ArgumentCaptor<DatabaseStructure> dbStructureCaptor = ArgumentCaptor.forClass(DatabaseStructure.class);
-    importer.getDatabase(mocked);
+    importer.migrateDatabaseTo(mocked);
     Mockito.verify(mocked).handleStructure(dbStructureCaptor.capture());
     return dbStructureCaptor.getValue();
   }

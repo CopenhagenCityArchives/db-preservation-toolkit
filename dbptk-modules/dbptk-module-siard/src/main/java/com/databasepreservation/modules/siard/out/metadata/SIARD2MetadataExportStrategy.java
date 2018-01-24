@@ -723,7 +723,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
         tablesType.getTable().add(jaxbTableType(schema, tableStructure));
       }
     } else {
-      LOGGER.info(String.format("Schema %s does not have any tables.", schema.getName()));
+      LOGGER.info("Schema '{}' does not have any tables.", schema.getName());
     }
     return tablesType;
   }

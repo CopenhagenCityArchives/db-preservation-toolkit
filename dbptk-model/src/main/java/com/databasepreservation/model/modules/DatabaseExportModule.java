@@ -7,13 +7,15 @@ import java.util.Set;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
-import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 
 /**
- * @author Luis Faria
+ * An export module exports the database (that it receives from a
+ * DatabaseImportModule) to a database system or format.
+ *
+ * @author Luis Faria <lfaria@keep.pt>
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public interface DatabaseExportModule {
@@ -51,7 +53,7 @@ public interface DatabaseExportModule {
    * @throws ModuleException
    * @throws UnknownTypeException
    */
-  void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException;
+  void handleStructure(DatabaseStructure structure) throws ModuleException;
 
   /**
    * Prepare to handle the data of a new schema. This method will be called
@@ -81,10 +83,9 @@ public interface DatabaseExportModule {
    *
    * @param row
    *          the table row
-   * @throws InvalidDataException
    * @throws ModuleException
    */
-  void handleDataRow(Row row) throws InvalidDataException, ModuleException;
+  void handleDataRow(Row row) throws ModuleException;
 
   /**
    * Finish handling the data of a table. This method will be called after all

@@ -96,7 +96,7 @@ public class ListTables implements DatabaseExportModule {
    * @throws UnknownTypeException
    */
   @Override
-  public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
+  public void handleStructure(DatabaseStructure structure) throws ModuleException {
     if (structure == null) {
       throw new ModuleException("Database structure must not be null");
     }
@@ -134,7 +134,7 @@ public class ListTables implements DatabaseExportModule {
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
     try {
-      currentTable = dbStructure.lookupTableStructure(tableId);
+      currentTable = dbStructure.getTableById(tableId);
       if (currentTable == null) {
         throw new ModuleException("Couldn't find table with id: " + tableId);
       }
@@ -155,7 +155,7 @@ public class ListTables implements DatabaseExportModule {
    * @throws ModuleException
    */
   @Override
-  public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
+  public void handleDataRow(Row row) throws ModuleException {
     // nothing to do
   }
 

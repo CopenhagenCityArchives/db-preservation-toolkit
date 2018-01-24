@@ -31,12 +31,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.NoOpReporter;
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.ParameterGroup;
@@ -60,10 +56,14 @@ public class CLI {
 
   private final ArrayList<DatabaseModuleFactory> factories;
   private final List<String> commandLineArguments;
-  private DatabaseImportModule importModule;
+
   private String importModuleName;
+  private DatabaseModuleFactory importModuleFactory;
+  private Map<Parameter, String> importModuleParameters;
+
   private String exportModuleName;
-  private DatabaseExportModule exportModule;
+  private DatabaseModuleFactory exportModuleFactory;
+  private Map<Parameter, String> exportModuleParameters;
 
   private boolean forceDisableEncryption = false;
 
@@ -76,12 +76,11 @@ public class CLI {
    *          List of available module factories
    */
   public CLI(List<String> commandLineArguments, List<Class<? extends DatabaseModuleFactory>> databaseModuleFactories) {
-    factories = new ArrayList<DatabaseModuleFactory>();
+    factories = new ArrayList<>();
     this.commandLineArguments = commandLineArguments;
-    Reporter mockReporter = new NoOpReporter();
     try {
       for (Class<? extends DatabaseModuleFactory> factoryClass : databaseModuleFactories) {
-        factories.add(factoryClass.getDeclaredConstructor(Reporter.class).newInstance(mockReporter));
+        factories.add(factoryClass.getDeclaredConstructor().newInstance());
       }
     } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
       LOGGER.error("Error initializing CLI", e);
@@ -98,7 +97,7 @@ public class CLI {
    *          Array of available module factories
    */
   public CLI(List<String> commandLineArguments, DatabaseModuleFactory... databaseModuleFactories) {
-    factories = new ArrayList<DatabaseModuleFactory>(Arrays.asList(databaseModuleFactories));
+    factories = new ArrayList<>(Arrays.asList(databaseModuleFactories));
     this.commandLineArguments = commandLineArguments;
     includePluginModules();
   }
@@ -137,35 +136,71 @@ public class CLI {
   }
 
   /**
-   * Gets the database import module, obtained by parsing the parameters
+   * Gets the database import module parameters, obtained by parsing the
+   * parameters
    *
-   * @return The database import module specified in the parameters
+   * @return The import module configuration parameters
    * @throws ParseException
    *           if there was an error parsing the command line parameters
    * @throws LicenseNotAcceptedException
    *           if the license for using a module was not accepted
    */
-  public DatabaseImportModule getImportModule() throws ParseException, LicenseNotAcceptedException {
-    if (importModule == null) {
+  public Map<Parameter, String> getImportModuleParameters() throws ParseException, LicenseNotAcceptedException {
+    if (importModuleFactory == null) {
       parse(commandLineArguments);
     }
-    return importModule;
+    return importModuleParameters;
   }
 
   /**
-   * Gets the database export module, obtained by parsing the parameters
+   * Gets the database import module factory, obtained by parsing the parameters
    *
-   * @return The database import module specified in the parameters
+   * @return The database module factory capable of producing the import module
+   *         specified in the parameters
    * @throws ParseException
    *           if there was an error parsing the command line parameters
    * @throws LicenseNotAcceptedException
    *           if the license for using a module was not accepted
    */
-  public DatabaseExportModule getExportModule() throws ParseException, LicenseNotAcceptedException {
-    if (exportModule == null) {
+  public DatabaseModuleFactory getImportModuleFactory() throws ParseException, LicenseNotAcceptedException {
+    if (importModuleFactory == null) {
       parse(commandLineArguments);
     }
-    return exportModule;
+    return importModuleFactory;
+  }
+
+  /**
+   * Gets the database export module parameters, obtained by parsing the
+   * parameters
+   *
+   * @return The export module configuration parameters
+   * @throws ParseException
+   *           if there was an error parsing the command line parameters
+   * @throws LicenseNotAcceptedException
+   *           if the license for using a module was not accepted
+   */
+  public Map<Parameter, String> getExportModuleParameters() throws ParseException, LicenseNotAcceptedException {
+    if (exportModuleFactory == null) {
+      parse(commandLineArguments);
+    }
+    return exportModuleParameters;
+  }
+
+  /**
+   * Gets the database export module factory, obtained by parsing the parameters
+   *
+   * @return The database module factory capable of producing the export module
+   *         specified in the parameters
+   * @throws ParseException
+   *           if there was an error parsing the command line parameters
+   * @throws LicenseNotAcceptedException
+   *           if the license for using a module was not accepted
+   */
+  public DatabaseModuleFactory getExportModuleFactory() throws ParseException, LicenseNotAcceptedException {
+    if (exportModuleFactory == null) {
+      parse(commandLineArguments);
+    }
+    return exportModuleFactory;
   }
 
   /**
@@ -206,8 +241,8 @@ public class CLI {
    */
   public void disableEncryption() {
     forceDisableEncryption = true;
-    importModule = null;
-    exportModule = null;
+    importModuleFactory = null;
+    exportModuleFactory = null;
   }
 
   /**
@@ -221,16 +256,18 @@ public class CLI {
   private void parse(List<String> args) throws ParseException, LicenseNotAcceptedException {
     DatabaseModuleFactoriesPair databaseModuleFactoriesPair = getModuleFactories(args);
 
+    importModuleFactory = databaseModuleFactoriesPair.getImportModuleFactory();
+    exportModuleFactory = databaseModuleFactoriesPair.getExportModuleFactory();
+
     try {
-      importModuleName = databaseModuleFactoriesPair.getImportModuleFactory().getModuleName();
-      exportModuleName = databaseModuleFactoriesPair.getExportModuleFactory().getModuleName();
+      importModuleName = importModuleFactory.getModuleName();
+      exportModuleName = exportModuleFactory.getModuleName();
       DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = getModuleArguments(
         databaseModuleFactoriesPair, args);
 
       if (forceDisableEncryption) {
         // inject disable encryption for import module
-        for (Parameter parameter : databaseModuleFactoriesPair.getImportModuleFactory().getImportModuleParameters()
-          .getParameters()) {
+        for (Parameter parameter : importModuleFactory.getImportModuleParameters().getParameters()) {
           if (parameter.longName().equalsIgnoreCase("disable-encryption")) {
             if (!databaseModuleFactoriesArguments.getImportModuleArguments().containsKey(parameter)) {
               databaseModuleFactoriesArguments.getImportModuleArguments().put(parameter, "true");
@@ -240,8 +277,7 @@ public class CLI {
         }
 
         // inject disable encryption for export module
-        for (Parameter parameter : databaseModuleFactoriesPair.getExportModuleFactory().getExportModuleParameters()
-          .getParameters()) {
+        for (Parameter parameter : exportModuleFactory.getExportModuleParameters().getParameters()) {
           if (parameter.longName().equalsIgnoreCase("disable-encryption")) {
             if (!databaseModuleFactoriesArguments.getExportModuleArguments().containsKey(parameter)) {
               databaseModuleFactoriesArguments.getExportModuleArguments().put(parameter, "true");
@@ -251,11 +287,8 @@ public class CLI {
         }
       }
 
-      // set import and export modules
-      importModule = databaseModuleFactoriesPair.getImportModuleFactory().buildImportModule(
-        databaseModuleFactoriesArguments.getImportModuleArguments());
-      exportModule = databaseModuleFactoriesPair.getExportModuleFactory().buildExportModule(
-        databaseModuleFactoriesArguments.getExportModuleArguments());
+      importModuleParameters = databaseModuleFactoriesArguments.getImportModuleArguments();
+      exportModuleParameters = databaseModuleFactoriesArguments.getExportModuleArguments();
     } catch (UnsupportedModuleException e) {
       LOGGER.debug("UnsupportedModuleException", e);
       throw new ParseException("Module does not support the requested mode.");

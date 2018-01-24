@@ -143,7 +143,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
           String tableId = originalReferencedSchema + "." + fkey.getReferencedTable();
 
-          TableStructure tableAux = databaseStructure.lookupTableStructure(tableId);
+          TableStructure tableAux = databaseStructure.getTableById(tableId);
           if (tableAux != null) {
             if (isIgnoredSchema(tableAux.getSchema())) {
               LOGGER.warn("Foreign key not exported: " + "referenced schema (" + fkey.getReferencedSchema()
@@ -176,13 +176,13 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
   }
 
   protected void handleSchemaStructure(SchemaStructure schema) throws ModuleException, UnknownTypeException {
-    LOGGER.info("Handling schema structure " + schema.getName());
+    LOGGER.debug("Handling schema structure {}", schema.getName());
     // for mysql the schema never needs to be created, because it is the same as
     // the database and the database must already exist
     for (TableStructure table : schema.getTables()) {
       handleTableStructure(table);
     }
-    LOGGER.info("Handling schema structure " + schema.getName() + " finished");
+    LOGGER.debug("Handling schema structure {} finished", schema.getName());
   }
 
   @Override

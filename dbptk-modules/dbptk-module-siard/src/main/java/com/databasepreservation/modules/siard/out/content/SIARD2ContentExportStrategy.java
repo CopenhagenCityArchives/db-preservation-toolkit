@@ -481,8 +481,6 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
           xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
         } catch (ModuleException e) {
           LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
-        } catch (UnknownTypeException e) {
-          LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
         }
       }
       columnIndex++;

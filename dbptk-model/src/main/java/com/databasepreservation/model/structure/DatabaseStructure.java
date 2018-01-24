@@ -545,13 +545,12 @@ public class DatabaseStructure {
    *          the table id
    * @return the table structure
    */
-  public TableStructure lookupTableStructure(String tableId) {
+  public TableStructure getTableById(String tableId) {
     TableStructure ret = null;
     for (SchemaStructure schema : getSchemas()) {
-      for (TableStructure tableStructure : schema.getTables()) {
-        if (tableStructure.getId().equalsIgnoreCase(tableId)) {
-          ret = tableStructure;
-        }
+      ret = schema.getTableById(tableId);
+      if(ret != null){
+        break;
       }
     }
     return ret;
